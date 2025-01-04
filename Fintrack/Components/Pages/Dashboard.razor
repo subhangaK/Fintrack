@@ -1,92 +1,8 @@
 ﻿@page "/dashboard"
 @using Fintrack.Model
 
-<style>
-    .dashboard-card {
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        margin-bottom: 20px;
-        background-color: #fff;
-        transition: transform 0.3s, box-shadow 0.3s;
-    }
-
-        .dashboard-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-        }
-
-    .dashboard-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 30px;
-    }
-
-        .dashboard-header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #333;
-        }
-
-    .chart-container {
-        height: 300px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: #f8f9fa;
-        border-radius: 10px;
-        border: 1px solid #ddd;
-    }
-
-    .btn-primary {
-        background-color: #007bff;
-        border-color: #007bff;
-        font-size: 1rem;
-        padding: 10px 20px;
-        border-radius: 5px;
-    }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
-        }
-
-    .filter-container label {
-        font-weight: 600;
-        margin-right: 10px;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        text-align: center;
-        padding: 10px;
-        border: 1px solid #ddd;
-    }
-
-    th {
-        background-color: #f4f4f4;
-        font-weight: 600;
-    }
-
-    .modal-content {
-        border-radius: 10px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .badge {
-        font-size: 0.9rem;
-        padding: 5px 10px;
-    }
-</style>
-
 <div class="container mt-4">
     <div class="dashboard-header">
-        <h1>Dashboard</h1>
         <button class="btn btn-primary" @onclick="OpenModal">Add Transaction</button>
     </div>
 
@@ -119,6 +35,73 @@
             </div>
         </div>
     </div>
+
+       <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h5>Highest Transaction</h5>
+
+                @{var highestTransaction = TransactionService.GetHighestTransaction();}
+
+                @if (highestTransaction != null)
+                {
+                    <div class="transaction-details">
+                        <p class="mb-1"><strong>Amount:</strong> 
+                            <span class="@(highestTransaction.Type == "Income" ? "text-success" : 
+                                         highestTransaction.Type == "Expense" ? "text-danger" : "text-warning")">
+                                @highestTransaction.Amount.ToString("C")
+                            </span>
+                        </p>
+                        <p class="mb-1"><strong>Description:</strong> @highestTransaction.Description</p>
+                        <p class="mb-1"><strong>Date:</strong> @highestTransaction.Date.ToString("yyyy-MM-dd")</p>
+                        <p class="mb-0"><strong>Type:</strong> 
+                            <span class="badge @(highestTransaction.Type == "Income" ? "bg-success" : 
+                                               highestTransaction.Type == "Expense" ? "bg-danger" : "bg-warning")">
+                                @highestTransaction.Type
+                            </span>
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No transactions found</p>
+                }
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h5>Lowest Transaction</h5>
+                
+
+                @{var  lowestTransaction =  TransactionService.GetLowestTransaction();}
+
+                @if (lowestTransaction != null)
+                {
+                    <div class="transaction-details">
+                        <p class="mb-1"><strong>Amount:</strong> 
+                            <span class="@(lowestTransaction.Type == "Income" ? "text-success" : 
+                                         lowestTransaction.Type == "Expense" ? "text-danger" : "text-warning")">
+                                @lowestTransaction.Amount.ToString("C")
+                            </span>
+                        </p>
+                        <p class="mb-1"><strong>Description:</strong> @lowestTransaction.Description</p>
+                        <p class="mb-1"><strong>Date:</strong> @lowestTransaction.Date.ToString("yyyy-MM-dd")</p>
+                        <p class="mb-0"><strong>Type:</strong> 
+                            <span class="badge @(lowestTransaction.Type == "Income" ? "bg-success" : 
+                                               lowestTransaction.Type == "Expense" ? "bg-danger" : "bg-warning")">
+                                @lowestTransaction.Type
+                            </span>
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No transactions found</p>
+                }
+            </div>
+        </div>
+    </div>
+
 
     <div class="d-flex justify-content-between align-items-center my-4 filter-container">
         <div>
@@ -247,6 +230,7 @@
     private void RefreshData()
     {
         financialSummary = TransactionService.GetFinancialSummary();
+        StateHasChanged();
     }
 
     private void OpenModal()

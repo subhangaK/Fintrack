@@ -38,7 +38,12 @@
                 <option value="Debt">Debt</option>
             </select>
         </div>
+        <div class="col-md-4">
+            <label>Search Transactions</label>
+            <input type="text" class="form-control" @bind="searchQuery" @bind:after="RefreshTransactions" placeholder="Enter description" />
+        </div>
     </div>
+
 
     <!-- Transaction Table -->
     <table class="table table-striped table-hover mt-3">
@@ -139,6 +144,8 @@
     private string errorMessage = "";
     private DateTime? filterDate;
     private string sortType = "";
+    private string searchQuery = "";
+
 
     protected override void OnInitialized()
     {
@@ -147,12 +154,18 @@
 
     private void RefreshTransactions()
     {
-        filteredTransactions = TransactionService.GetFilteredTransactions(
+        var allTransactions = TransactionService.GetFilteredTransactions(
             filterDate?.Date,
             filterDate?.Date.AddDays(1).AddSeconds(-1),
             sortType == "All" ? "" : sortType
         );
+
+        // Apply search query
+        filteredTransactions = string.IsNullOrWhiteSpace(searchQuery)
+            ? allTransactions
+            : allTransactions.Where(t => t.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)).ToList();
     }
+
 
     private void OpenEditModal(Transaction transaction)
     {

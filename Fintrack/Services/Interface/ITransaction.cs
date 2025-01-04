@@ -10,5 +10,9 @@ namespace Fintrack.Services.Interface
         bool UpdateTransaction(Transaction oldTransaction, Transaction newTransaction);
         bool DeleteTransaction(Transaction transaction);
         (decimal Income, decimal Expense, decimal Debt, decimal Balance) GetFinancialSummary();
+
+        Transaction GetHighestTransaction();
+        Transaction GetLowestTransaction();
+
     }
 }

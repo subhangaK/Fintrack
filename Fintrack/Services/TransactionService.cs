@@ -78,5 +78,15 @@ namespace Fintrack.Services
 
             return (income, expense, debt, balance);
         }
+
+        public Transaction GetHighestTransaction()
+        {
+            return _transactions.OrderByDescending(t => t.Amount).FirstOrDefault();
+        }
+
+        public Transaction GetLowestTransaction()
+        {
+            return _transactions.OrderBy(t => t.Amount).FirstOrDefault();
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Fintrack.Services.Interface;
 using Microsoft.Extensions.Logging;
 using Fintrack.Services;
+using MudBlazor.Services;
 
 namespace Fintrack
 {
@@ -20,6 +21,7 @@ namespace Fintrack
 
 #if DEBUG
             builder.Services.AddScoped<IUser, UserService>();
+            builder.Services.AddMudServices();
             builder.Services.AddBlazorWebViewDeveloperTools();
             builder.Services.AddScoped<ITransaction, TransactionService>();
             builder.Logging.AddDebug();

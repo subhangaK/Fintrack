@@ -1,34 +1,60 @@
 ﻿@page "/login"
 @using Fintrack.Model
+@using Fintrack.Components.Pages;
 
 <style>
     body {
-        background: linear-gradient(135deg, #6a11cb, #2575fc);
-        height: 100vh;
+        background: linear-gradient(135deg, #0052cc, #0052cc);
+        min-height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
         margin: 0;
-        font-family: 'Roboto', sans-serif;
+        font-family: 'Poppins', sans-serif;
+        color: #ffffff;
     }
 
-    .form-login {
+    .login-container {
+        width: 100%;
+        max-width: 400px;
+        padding: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .login-card {
         background: #ffffff;
         border-radius: 15px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        width: 150%;
-        max-width: 800px;
-        padding: 2.5rem;
+        box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.3);
+        width: 100%;
+        padding: 2rem;
+        box-sizing: border-box;
     }
 
-        .form-login img {
-            margin-bottom: 1rem;
-        }
+    .form-header {
+        margin-bottom: 1.5rem;
+    }
 
-        .form-login h1 {
-            font-size: 2rem;
-            color: #333;
-        }
+    .form-logo {
+        display: block;
+        margin: 0 auto 1rem;
+        width: 50px;
+        height: 50px;
+    }
+
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #333333;
+        text-align: center;
+    }
+
+    .form-subtitle {
+        font-size: 0.9rem;
+        color: #666666;
+        text-align: center;
+    }
 
     .form-floating {
         position: relative;
@@ -36,75 +62,112 @@
     }
 
         .form-floating input {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            height: 55px;
-            padding: 1rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
             font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            transition: border-color 0.3s ease;
         }
 
         .form-floating label {
             position: absolute;
-            top: 10px;
+            top: 50%;
             left: 10px;
-            font-size: 0.9rem;
-            color: #999;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            color: #aaa;
             pointer-events: none;
-            transition: all 0.2s ease-in-out;
+            transition: all 0.3s ease;
         }
 
         .form-floating input:focus {
+            border-color: #0052cc;
             outline: none;
-            border-color: #2575fc;
         }
 
             .form-floating input:focus + label,
             .form-floating input:not(:placeholder-shown) + label {
-                top: -15px;
-                left: 5px;
-                font-size: 0.75rem;
-                color: #2575fc;
+                top: -10px;
+                left: 10px;
+                font-size: 0.85rem;
+                color: #0052cc;
             }
 
     .btn-primary {
-        background: #6a11cb;
-        border: none;
-        border-radius: 25px;
-        padding: 0.75rem 2rem;
+        background: linear-gradient(135deg, #0052cc, #003d99);
+        color: #fff;
+        padding: 0.75rem;
         font-size: 1rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
         transition: background 0.3s ease;
     }
 
         .btn-primary:hover {
-            background: #2575fc;
+            background: linear-gradient(135deg, #003d99, #002966);
+        }
+
+    .form-footer {
+        margin-top: 1.5rem;
+        text-align: center;
+    }
+
+    .text-link {
+        color: #0052cc;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .text-link:hover {
+            text-decoration: underline;
+            color: #003d99;
         }
 
     .alert {
-        font-size: 0.9rem;
+        background: #ff4d4d;
+        color: #ffffff;
+        padding: 0.75rem;
+        border-radius: 5px;
+        text-align: center;
         margin-top: 1rem;
     }
+
 </style>
 
-<div class="form-login">
-    <form class="text-center" @onsubmit="HandleLogin">
-        <img class="mb-4" src="/appicon.png" alt="App Icon" height="72">
-        <h1 class="h3 mb-3 fw-normal">Welcome Back</h1>
+<div class="login-body">
+<div class="login-container">
+    <div class="login-card">
+        <form @onsubmit="HandleLogin">
+            <div class="form-header text-center">
+                <img src="/appicon.png" alt="App Icon" class="form-logo">
+                <h1 class="form-title">Sign In</h1>
+                <pd class="form-subtitle">Welcome back! Please enter your details.</pd>
+            </div>
 
-        <div class="form-floating mb-3">
-            <input type="text" class="form-control" @bind="Users.UserName" placeholder=" " />
-            <label for="floatingInput">Username</label>
-        </div>
+            <div class="form-floating mb-3">
+                <input type="text" id="username" class="form-control" @bind="Users.UserName" placeholder="Username" />
+                <label for="username">Username</label>
+            </div>
 
-        <div class="form-floating mb-3">
-            <input type="password" class="form-control" @bind="Users.Password" placeholder=" " />
-            <label for="floatingPassword">Password</label>
-        </div>
+            <div class="form-floating mb-3">
+                <input type="password" id="password" class="form-control" @bind="Users.Password" placeholder="Password" />
+                <label for="password">Password</label>
+            </div>
 
-        @if (!string.IsNullOrEmpty(ErrorMessage))
-        {
-            <div class="alert alert-danger">@ErrorMessage</div>
-        }
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger">@ErrorMessage</div>
+            }
 
-        <button type="submit" class="btn btn-lg btn-primary w-100">Login</button>
-    </form>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+
+            <div class="form-footer text-center mt-3">
+                <p>Don't have an account? <a href="/signup" class="text-link">Sign up</a></p>
+            </div>
+        </form>
+    </div>
+</div>
 </div>

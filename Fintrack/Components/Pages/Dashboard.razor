@@ -1,0 +1,291 @@
+﻿@page "/dashboard"
+@using Fintrack.Model
+
+<style>
+    .dashboard-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #fff;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+        .dashboard-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+    .chart-container {
+        height: 300px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        font-size: 1rem;
+        padding: 10px 20px;
+        border-radius: 5px;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+    .filter-container label {
+        font-weight: 600;
+        margin-right: 10px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        text-align: center;
+        padding: 10px;
+        border: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f4f4f4;
+        font-weight: 600;
+    }
+
+    .modal-content {
+        border-radius: 10px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .badge {
+        font-size: 0.9rem;
+        padding: 5px 10px;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="dashboard-header">
+        <h1>Dashboard</h1>
+        <button class="btn btn-primary" @onclick="OpenModal">Add Transaction</button>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="dashboard-card text-center">
+                <h5>Total Inflows</h5>
+                <h2 class="text-success">@financialSummary.Income.ToString("C")</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dashboard-card text-center">
+                <h5>Total Outflows</h5>
+                <h2 class="text-danger">@financialSummary.Expense.ToString("C")</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dashboard-card text-center">
+                <h5>Total Debt</h5>
+                <h2 class="text-warning">@financialSummary.Debt.ToString("C")</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="dashboard-card text-center">
+                <h5>Available Balance</h5>
+                <h2 class="text-primary">@financialSummary.Balance.ToString("C")</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center my-4 filter-container">
+        <div>
+            <label for="filterType">Filter by Type:</label>
+            <select id="filterType" class="form-select" @bind="selectedTypeFilter">
+                <option value="">All</option>
+                <option value="Income">Income</option>
+                <option value="Expense">Expense</option>
+                <option value="Debt">Debt</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h5>Financial Overview</h5>
+                <div class="chart-container">
+                    <p style="color: gray; font-style: italic;">[Add Chart Here]</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h5>Top Transactions</h5>
+                <div class="mb-3">
+                    <label for="fromDate">From:</label>
+                    <input id="fromDate" type="date" class="form-control" @bind="fromDate" />
+                </div>
+                <div class="mb-3">
+                    <label for="toDate">To:</label>
+                    <input id="toDate" type="date" class="form-control" @bind="toDate" />
+                </div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var transaction in GetTopTransactions())
+                        {
+                            <tr class="@(transaction.Type == "Income" ? "table-success" : transaction.Type == "Expense" ? "table-danger" : "table-warning")">
+                                <td>@transaction.Description</td>
+                                <td>@transaction.Date.ToString("yyyy-MM-dd")</td>
+                                <td>@transaction.Amount.ToString("C")</td>
+                                <td>
+                                    <span class="badge @(transaction.Type == "Income" ? "bg-success" : transaction.Type == "Expense" ? "bg-danger" : "bg-warning")">
+                                        @transaction.Type
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (showModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Transaction</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (insufficientBalance)
+                    {
+                        <div class="alert alert-danger">
+                            Insufficient balance to add the expense transaction.
+                        </div>
+                    }
+                    <div class="mb-3">
+                        <label for="description">Description</label>
+                        <input id="description" type="text" class="form-control" @bind="newTransaction.Description" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="date">Date</label>
+                        <input id="date" type="date" class="form-control" @bind="newTransaction.Date" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="amount">Amount</label>
+                        <input id="amount" type="number" class="form-control" @bind="newTransaction.Amount" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="type">Type</label>
+                        <select id="type" class="form-control" @bind="newTransaction.Type">
+                            <option value=""></option>
+                            <option value="Income">Income</option>
+                            <option value="Expense">Expense</option>
+                            <option value="Debt">Debt</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Close</button>
+                    <button type="button" class="btn btn-primary" @onclick="AddTransaction">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private Transaction newTransaction = new();
+    private bool showModal;
+    private bool insufficientBalance;
+    private (decimal Income, decimal Expense, decimal Debt, decimal Balance) financialSummary;
+    private DateTime? fromDate;
+    private DateTime? toDate;
+    private string selectedTypeFilter = "";
+
+    protected override void OnInitialized()
+    {
+        RefreshData();
+    }
+
+    private void RefreshData()
+    {
+        financialSummary = TransactionService.GetFinancialSummary();
+    }
+
+    private void OpenModal()
+    {
+        newTransaction = new Transaction { Date = DateTime.Now };
+        showModal = true;
+        insufficientBalance = false;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        newTransaction = new();
+        insufficientBalance = false;
+    }
+
+    private void AddTransaction()
+    {
+        if (string.IsNullOrWhiteSpace(newTransaction.Description) ||
+            string.IsNullOrWhiteSpace(newTransaction.Type) ||
+            newTransaction.Amount <= 0)
+        {
+            return;
+        }
+
+        if (TransactionService.AddTransaction(newTransaction, financialSummary.Balance))
+        {
+            RefreshData();
+            CloseModal();
+        }
+        else
+        {
+            insufficientBalance = true;
+        }
+    }
+
+    private List<Transaction> GetTopTransactions()
+    {
+        var transactions = TransactionService.GetFilteredTransactions(fromDate, toDate, selectedTypeFilter);
+        return transactions.Take(5).ToList();
+    }
+}

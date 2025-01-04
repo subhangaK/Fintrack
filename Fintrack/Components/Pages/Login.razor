@@ -1,0 +1,110 @@
+﻿@page "/login"
+@using Fintrack.Model
+
+<style>
+    body {
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    .form-login {
+        background: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        width: 150%;
+        max-width: 800px;
+        padding: 2.5rem;
+    }
+
+        .form-login img {
+            margin-bottom: 1rem;
+        }
+
+        .form-login h1 {
+            font-size: 2rem;
+            color: #333;
+        }
+
+    .form-floating {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+        .form-floating input {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            height: 55px;
+            padding: 1rem;
+            font-size: 1rem;
+        }
+
+        .form-floating label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 0.9rem;
+            color: #999;
+            pointer-events: none;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .form-floating input:focus {
+            outline: none;
+            border-color: #2575fc;
+        }
+
+            .form-floating input:focus + label,
+            .form-floating input:not(:placeholder-shown) + label {
+                top: -15px;
+                left: 5px;
+                font-size: 0.75rem;
+                color: #2575fc;
+            }
+
+    .btn-primary {
+        background: #6a11cb;
+        border: none;
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        transition: background 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            background: #2575fc;
+        }
+
+    .alert {
+        font-size: 0.9rem;
+        margin-top: 1rem;
+    }
+</style>
+
+<div class="form-login">
+    <form class="text-center" @onsubmit="HandleLogin">
+        <img class="mb-4" src="/appicon.png" alt="App Icon" height="72">
+        <h1 class="h3 mb-3 fw-normal">Welcome Back</h1>
+
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" @bind="Users.UserName" placeholder=" " />
+            <label for="floatingInput">Username</label>
+        </div>
+
+        <div class="form-floating mb-3">
+            <input type="password" class="form-control" @bind="Users.Password" placeholder=" " />
+            <label for="floatingPassword">Password</label>
+        </div>
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert alert-danger">@ErrorMessage</div>
+        }
+
+        <button type="submit" class="btn btn-lg btn-primary w-100">Login</button>
+    </form>
+</div>

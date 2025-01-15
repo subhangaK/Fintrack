@@ -1,0 +1,191 @@
+﻿/* Global Styles */
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #121212; /* Dark background */
+    color: #e0e0e0; /* Light text for readability */
+    margin: 0;
+    padding: 0;
+}
+
+a, .btn-link {
+    color: #80cbc4; /* Light teal for links */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #ffffff; /* White text for headings */
+}
+
+/* Button Styles */
+.btn-primary {
+    color: #fff;
+    background-color: #1e88e5; /* Bright blue */
+    border-color: #1976d2;
+}
+
+.btn-dark {
+    color: #fff;
+    background-color: #333333; /* Dark button background */
+    border-color: #555555;
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem #999999, 0 0 0 0.25rem #1976d2; /* Lighter blue focus outline */
+}
+
+/* Modal Styles */
+.modal-content {
+    background-color: #2c2c2c; /* Dark modal background */
+    color: #e0e0e0; /* Light modal text */
+}
+
+.modal-header, .modal-footer {
+    border-color: #444444; /* Dark border for modal */
+}
+
+.modal-title {
+    color: #ffffff; /* White title */
+}
+
+.close {
+    color: #e0e0e0; /* Close button color */
+    opacity: 0.8;
+}
+
+    .close:hover {
+        color: #ffffff; /* Close button hover color */
+        opacity: 1;
+    }
+
+/* Input & Form Control */
+.form-control, .form-select {
+    background-color: #1f1f1f; /* Dark background for inputs */
+    color: #e0e0e0; /* Light text for inputs */
+    border: 1px solid #444444; /* Dark borders */
+}
+
+    .form-control:focus, .form-select:focus {
+        border-color: #80cbc4; /* Light teal border on focus */
+        box-shadow: 0 0 0 0.25rem rgba(128, 203, 196, 0.5); /* Light teal shadow */
+    }
+
+/* Tables */
+table {
+    width: 100%;
+    margin-top: 20px;
+    background-color: #1e1e1e; /* Dark table background */
+}
+
+    table th, table td {
+        color: #e0e0e0; /* Light text for table */
+        border-top: 1px solid #444444; /* Dark border for table */
+    }
+
+    table th {
+        background-color: #333333; /* Darker header background */
+    }
+
+    table tbody tr:hover {
+        background-color: #333333; /* Highlight row on hover */
+    }
+
+/* Card and Dashboard Components */
+.dashboard-card {
+    background-color: #212121; /* Dark background for cards */
+    color: #e0e0e0; /* Light text for cards */
+    border-radius: 8px;
+    padding: 15px;
+}
+
+    .dashboard-card h5 {
+        font-size: 1.2rem;
+    }
+
+    .dashboard-card h2 {
+        font-size: 2rem;
+    }
+
+    .dashboard-card .transaction-details p {
+        color: #bdbdbd; /* Lighter gray for transaction details */
+    }
+
+/* Table Transaction Amount Colors */
+.text-success {
+    color: #81c784; /* Green for income */
+}
+
+.text-danger {
+    color: #e57373; /* Red for expense */
+}
+
+.text-warning {
+    color: #ffb74d; /* Yellow for debt */
+}
+
+/* Notifications & Validation */
+.validation-message {
+    color: #e57373; /* Red for error messages */
+}
+
+#blazor-error-ui {
+    background: #333333; /* Dark background for errors */
+    color: #ff6347; /* Red text for error messages */
+}
+
+.blazor-error-boundary {
+    background: #1e88e5; /* Blue background for error boundary */
+    padding: 1rem;
+    color: white;
+}
+
+    .blazor-error-boundary::after {
+        content: "An error has occurred.";
+    }
+
+/* Safe Area & Status Bar */
+.status-bar-safe-area {
+    display: none;
+}
+
+@supports (-webkit-touch-callout: none) {
+    .status-bar-safe-area {
+        display: flex;
+        position: sticky;
+        top: 0;
+        height: env(safe-area-inset-top);
+        background-color: #1f1f1f; /* Dark background for safe area */
+        width: 100%;
+        z-index: 1;
+    }
+
+    .flex-column, .navbar-brand {
+        padding-left: env(safe-area-inset-left);
+    }
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #555555;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #333333;
+}
+
+/* General Padding */
+.content {
+    padding-top: 1.1rem;
+}
+
+/* Error/Invalid Inputs */
+.invalid {
+    outline: 1px solid #ff6347; /* Red for errors */
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #1e88e5; /* Blue for valid inputs */
+}

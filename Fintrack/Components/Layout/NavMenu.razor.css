@@ -1,0 +1,55 @@
+.nav-scrollable {
+    background: #121212; 
+    color: #ffffff;
+    box-shadow: 2px 0px 8px rgba(0, 0, 0, 0.4); 
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    font-family: 'Poppins', sans-serif;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    text-transform: uppercase; 
+}
+
+    .nav-link:hover {
+        background-color: #3b82f6; 
+        color: #ffffff;
+    }
+
+.nav-item {
+    width: 100%;
+    margin-bottom: 0.75rem; 
+}
+
+    .nav-item span {
+        margin-right: 10px;
+        font-size: 1.3rem;
+    }
+
+    .nav-item a {
+        display: flex;
+        align-items: center;
+    }
+
+.nav-link.text-danger {
+    color: #e3342f; 
+}
+
+    .nav-link.text-danger:hover {
+        background-color: #e3342f;
+        color: #ffffff;
+    }
+
+.nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Subtle background change on hover */
+}

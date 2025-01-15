@@ -1,0 +1,370 @@
+﻿@page "/manage-transactions"
+@using Fintrack.Model
+@inject IJSRuntime JS
+
+<style>
+    .modal-backdrop {
+        z-index: 1040 !important;
+    }
+
+    .modal-content {
+        z-index: 1050 !important;
+    }
+
+    .table td, .table th {
+        vertical-align: middle;
+    }
+
+    .actions-column {
+        width: 150px;
+    }
+       
+   .text-success{
+        color: green; /* Green for Income */
+    }
+
+    .text-danger {
+        color: red; /* Red for Expense and Delete action */
+    }
+
+    .text-warning {
+        color: yellow; /* Yellow for Debt */
+    }
+
+    .btn-link {
+        text-decoration: none;
+        padding: 0;
+        border: none;
+        background: none;
+    }
+</style>
+
+<div class="container mt-4">
+    <h3>Manage Transactions</h3>
+
+    <!-- Summary -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <p>Total Number of Transactions: @totalTransactions</p>
+        </div>
+        <div class="col-md-6">
+            <p>Total Amount: @totalAmount.ToString("C")</p>
+        </div>
+    </div>
+
+    <!-- Filters and Sort -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label>Filter by Date</label>
+            <input type="date" class="form-control" @bind="filterDate" @bind:after="RefreshTransactions" />
+        </div>
+        <div class="col-md-4">
+            <label>Sort by Type</label>
+            <select class="form-control" @bind="sortType" @bind:after="RefreshTransactions">
+                <option value="">All</option>
+                <option value="Income">Income</option>
+                <option value="Expense">Expense</option>
+                <option value="Debt">Debt</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label>Search Transactions</label>
+            <input type="text" class="form-control" @bind="searchQuery" @bind:after="RefreshTransactions" placeholder="Enter description" />
+        </div>
+        <br>
+        <!-- Sort by Date -->
+        <div class="col-md-4">
+            <label>Sort by Date</label>
+            <select class="form-control" @bind="sortDateOrder" @bind:after="RefreshTransactions">
+                <option value="Ascending">Ascending</option>
+                <option value="Descending">Descending</option>
+            </select>
+        </div>
+    </div>
+
+
+    <!-- Transaction Table -->
+    <table class="table table-striped table-hover mt-3">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Type</th>
+                <th>Notes</th>
+                <th>Tag</th> <!-- New Tag column -->
+                <th class="text-center actions-column">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (filteredTransactions.Any())
+            {
+                @foreach (var transaction in filteredTransactions)
+
+                {
+                    <tr>
+                        <td>@transaction.Description</td>
+                        <td>@transaction.Date.ToString("yyyy-MM-dd")</td>
+                        <td class="@(transaction.Type == "Income" ? "text-success" : transaction.Type == "Expense" ? "text-danger" : "text-warning")">
+                            @transaction.Amount.ToString("C")
+                        </td>
+                        <td>@transaction.Type</td>
+                        <td>@transaction.Note</td>
+                        <td>@transaction.Tag</td> <!-- Display Tag -->
+                        <td class="text-center">
+                            <button class="btn btn-link text-warning me-2" @onclick="() => OpenEditModal(transaction)">Edit</button>
+                            <button class="btn btn-link text-danger" @onclick="() => DeleteTransactionAsync(transaction)">Delete</button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center">No transactions found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (showModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@modalTitle</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (showError)
+                    {
+                        <div class="alert alert-danger">
+                            @errorMessage
+                        </div>
+                    }
+                    <div class="mb-3">
+                        <label>Description</label>
+                        <input type="text" class="form-control" @bind="editTransaction.Description" />
+                    </div>
+                    <div class="mb-3">
+                        <label>Date</label>
+                        <input type="date" class="form-control" @bind="editTransaction.Date" />
+                    </div>
+                    <div class="mb-3">
+                        <label>Amount</label>
+                        <input type="number" class="form-control" @bind="editTransaction.Amount" />
+                    </div>
+                    <div class="mb-3">
+                        <label>Notes</label>
+                        <textarea class="form-control" @bind="editTransaction.Note"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label>Type</label>
+                        <select class="form-control" @bind="editTransaction.Type">
+                            <option value="Income">Income</option>
+                            <option value="Expense">Expense</option>
+                            <option value="Debt">Debt</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Tag</label>
+                        <select class="form-control" @bind="editTransaction.Tag">
+                            <option value="">Select a Tag</option>
+                            @foreach (var tag in tags)
+
+
+
+                            {
+                                <option value="@tag">@tag</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveTransactionAsync">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private int totalTransactions;
+    private decimal totalAmount;
+    private List<Transaction> filteredTransactions = new();
+    private string sortDateOrder = "Ascending";
+    private Transaction editTransaction = new();
+    private Transaction? originalTransaction;
+    private string modalTitle = "Add Transaction";
+    private bool showModal;
+    private bool showError;
+    private string errorMessage = "";
+    private DateTime? filterDate;
+    private string sortType = "";
+    private string searchQuery = "";
+    private List<string> tags = new List<string> { "Food", "Rent", "Salary", "Utilities", "Transport", "Entertainment", "Healthcare", "Others" };
+
+    protected override void OnInitialized()
+    {
+        RefreshTransactions();
+    }
+
+    private void RefreshTransactions()
+
+    {
+        var allTransactions = TransactionService.GetFilteredTransactions(
+
+            filterDate?.Date,
+
+            filterDate?.Date.AddDays(1).AddSeconds(-1),
+
+            sortType == "All" ? "" : sortType
+
+        );
+
+        // Apply search query
+        filteredTransactions = string.IsNullOrWhiteSpace(searchQuery)
+            ? allTransactions
+            : allTransactions.Where(t => t.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)).ToList();
+
+
+
+        // Sort by date
+        filteredTransactions = sortDateOrder == "Ascending"
+
+            ? filteredTransactions.OrderBy(t => t.Date).ToList()
+
+            : filteredTransactions.OrderByDescending(t => t.Date).ToList();
+
+
+        // Calculate totals
+        totalTransactions = filteredTransactions.Count;
+
+        totalAmount = filteredTransactions.Sum(t => t.Amount);
+
+    }
+
+
+    private void OpenEditModal(Transaction transaction)
+    {
+        originalTransaction = transaction;
+        editTransaction = new Transaction
+            {
+                Description = transaction.Description,
+                Date = transaction.Date,
+                Amount = transaction.Amount,
+                Type = transaction.Type
+            };
+        modalTitle = "Edit Transaction";
+        showModal = true;
+        showError = false;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        editTransaction = new();
+        originalTransaction = null;
+        showError = false;
+    }
+
+
+
+    private async Task SaveTransactionAsync()
+
+    {
+
+        if (string.IsNullOrWhiteSpace(editTransaction.Description) ||
+
+            string.IsNullOrWhiteSpace(editTransaction.Type) ||
+
+            string.IsNullOrWhiteSpace(editTransaction.Tag) || 
+
+            editTransaction.Amount <= 0)
+
+        {
+
+            showError = true;
+
+            errorMessage = "Please fill in all fields correctly. Amount must be greater than 0.";
+
+            return;
+
+        }
+
+
+        var summary = TransactionService.GetFinancialSummary();
+
+        if (originalTransaction != null)
+
+        {
+
+            // Editing existing transaction
+
+            if (TransactionService.UpdateTransaction(originalTransaction, editTransaction))
+
+            {
+
+                RefreshTransactions();
+
+                CloseModal();
+
+            }
+
+            else
+
+            {
+
+                showError = true;
+
+                errorMessage = "Failed to update transaction. Please try again.";
+
+            }
+
+        }
+
+        else
+
+        {
+
+            // Adding new transaction
+
+            if (TransactionService.AddTransaction(editTransaction, summary.Balance))
+
+            {
+
+                RefreshTransactions();
+
+                CloseModal();
+
+            }
+
+            else
+
+            {
+
+                showError = true;
+
+                errorMessage = "Insufficient balance for this transaction.";
+
+            }
+
+        }
+
+    }
+
+    private async Task DeleteTransactionAsync(Transaction transaction)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", "Are you sure you want to delete this transaction?"))
+        {
+            if (TransactionService.DeleteTransaction(transaction))
+            {
+                RefreshTransactions();
+            }
+        }
+    }
+}

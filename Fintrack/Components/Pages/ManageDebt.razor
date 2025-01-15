@@ -1,0 +1,202 @@
+﻿@page "/manage-debt"
+@using Fintrack.Model
+
+<div class="container mt-4">
+    <h3 class="text-white">Manage Debts</h3>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card bg-dark text-dark mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Inflows</h5>
+                    <h3 class="text-primary">@financialSummary.Income.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark text-dark mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Outflows</h5>
+                    <h3 class="text-danger">@financialSummary.Expense.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark text-dark mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Debt</h5>
+                    <h3 class="text-warning">@financialSummary.Debt.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark text-dark mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Cleared Debt</h5>
+                    <h3 class="text-success">@clearedDebt.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Debts Table -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card bg-dark text-white">
+                <div class="card-header">
+                    <h5>Pending Debts</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var debt in pendingDebts)
+                            {
+                                <tr>
+                                    <td>@debt.Description</td>
+                                    <td>@debt.Date.ToString("yyyy-MM-dd")</td>
+                                    <td>@debt.Amount.ToString("C")</td>
+                                    <td>
+                                        <span class="badge bg-warning">Pending</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-success btn-sm" @onclick="() => ShowClearDebtModal(debt)">
+                                            Clear Debt
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cleared Debts Table -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card bg-dark text-white">
+                <div class="card-header">
+                    <h5>Cleared Debts</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var debt in clearedDebts)
+                            {
+                                <tr>
+                                    <td>@debt.Description</td>
+                                    <td>@debt.Date.ToString("yyyy-MM-dd")</td>
+                                    <td>@debt.Amount.ToString("C")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    @if (showClearDebtModal)
+    {
+        <div class="modal fade show d-block" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Clear Debt</h5>
+                        <button type="button" class="btn-close" @onclick="CloseClearDebtModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to clear this debt of @selectedDebt?.Amount.ToString("C")?</p>
+                        <p>Current available balance: @financialSummary.Balance.ToString("C")</p>
+                        @if (!string.IsNullOrEmpty(clearDebtErrorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                @clearDebtErrorMessage
+                            </div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseClearDebtModal">Cancel</button>
+                        <button type="button" class="btn btn-success" @onclick="ClearDebt">Clear Debt</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
+
+@code {
+    private (decimal Income, decimal Expense, decimal Debt, decimal Balance) financialSummary;
+    private List<Transaction> pendingDebts = new();
+    private List<Transaction> clearedDebts = new();
+    private decimal clearedDebt;
+    private bool showClearDebtModal;
+    private Transaction? selectedDebt;
+    private string clearDebtErrorMessage = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        RefreshData();
+    }
+
+    private void RefreshData()
+    {
+        financialSummary = TransactionService.GetFinancialSummary();
+        var allTransactions = TransactionService.GetAllTransactions();
+
+        pendingDebts = allTransactions
+            .Where(t => t.Type == "Debt" && !t.IsDebtCleared)
+            .ToList();
+
+        clearedDebts = allTransactions
+            .Where(t => t.Type == "Debt" && t.IsDebtCleared)
+            .ToList();
+
+        clearedDebt = clearedDebts.Sum(d => d.Amount);
+
+        StateHasChanged();
+    }
+
+    private void ShowClearDebtModal(Transaction debt)
+    {
+        selectedDebt = debt;
+        clearDebtErrorMessage = string.Empty;
+        showClearDebtModal = true;
+    }
+
+    private void CloseClearDebtModal()
+    {
+        showClearDebtModal = false;
+        selectedDebt = null;
+    }
+
+    private void ClearDebt()
+    {
+        if (selectedDebt == null) return;
+
+        if (TransactionService.TryClearDebt(selectedDebt, financialSummary.Balance, out clearDebtErrorMessage))
+        {
+            RefreshData();
+            CloseClearDebtModal();
+        }
+    }
+}

@@ -1,0 +1,151 @@
+﻿@page "/login"
+@using Fintrack.Model
+@using Fintrack.Components.Pages;
+
+<style>
+    .loginpage {
+        background: linear-gradient(135deg, #121212, #1c1c1c);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+        color: #ffffff;
+    }
+
+    .login-container {
+        width: 100%;
+        max-width: 400px;
+        padding: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .login-card {
+        background: #1e1e1e;
+        border-radius: 15px;
+        box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.5);
+        width: 100%;
+        padding: 2rem;
+        box-sizing: border-box;
+    }
+
+    .form-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ffffff;
+        text-align: center;
+    }
+
+    .form-subtitle {
+        font-size: 0.9rem;
+        color: #b3b3b3;
+        text-align: center;
+    }
+
+    .form-floating {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-floating input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: 1px solid #333333;
+        background-color: #2b2b2b;
+        color: #ffffff;
+        transition: border-color 0.3s ease, background-color 0.3s ease;
+    }
+
+    .form-floating label {
+        position: absolute;
+        top: 50%;
+        left: 10px;
+        transform: translateY(-50%);
+        font-size: 1rem;
+        color: #aaaaaa;
+        pointer-events: none;
+        transition: all 0.3s ease;
+    }
+
+    .form-floating input:focus {
+        border-color: #3b82f6;
+        outline: none;
+        background-color: #2b2b2b;
+            color: #ffffff;
+    }
+
+    .form-floating input:focus + label,
+    .form-floating input:not(:placeholder-shown) + label {
+        top: -10px;
+        left: 10px;
+        font-size: 0.85rem;
+        color: #3b82f6;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        color: #fff;
+        padding: 0.75rem;
+        font-size: 1rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #1e40af, #0f172a);
+    }
+
+    .alert {
+        background: #b91c1c;
+        color: #ffffff;
+        padding: 0.75rem;
+        border-radius: 5px;
+        text-align: center;
+        margin-top: 1rem;
+    }
+</style>
+<div class="loginpage">
+    <div class="login-body">
+        <div class="login-container">
+            <div class="login-card">
+                <form @onsubmit="HandleLogin">
+                    <div class="form-header text-center">
+                        <h1 class="form-title">FINTRACK</h1>
+                        <p class="form-subtitle">Welcome back! Please enter your details.</p>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input type="text" id="username" class="form-control" @bind="Users.UserName" placeholder="Username" />
+                        <label for="username">Username</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input type="password" id="password" class="form-control" @bind="Users.Password" placeholder="Password" />
+                        <label for="password">Password</label>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+
+                    {
+                        <div class="alert alert-danger">@ErrorMessage</div>
+                    }
+
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

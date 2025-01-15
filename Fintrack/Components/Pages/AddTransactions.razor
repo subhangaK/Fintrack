@@ -1,0 +1,105 @@
+﻿@page "/add-transaction"
+@using Fintrack.Model
+
+<div class="container mt-4">
+    <h3>Add Transaction</h3>
+
+    <div class="card">
+        <div class="card-body">
+            @if (insufficientBalance)
+            {
+                <div class="alert alert-danger">
+                    Insufficient balance to add the expense transaction.
+                </div>
+            }
+
+            <form @onsubmit="AddTransaction">
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <input id="description" type="text" class="form-control" @bind="newTransaction.Description" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="date" class="form-label">Date</label>
+                    <input id="date" type="date" class="form-control" @bind="newTransaction.Date" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="amount" class="form-label">Amount</label>
+                    <input id="amount" type="number" step="0.01" class="form-control" @bind="newTransaction.Amount" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="type" class="form-label">Type</label>
+                    <select id="type" class="form-control" @bind="newTransaction.Type" required>
+                        <option value="">Select Type</option>
+                        <option value="Income">Income</option>
+                        <option value="Expense">Expense</option>
+                        <option value="Debt">Debt</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="tag" class="form-label">Tag</label>
+                    <select id="tag" class="form-control" @bind="newTransaction.Tag" required>
+                        <option value="">Select Tag</option>
+                        @foreach (var tag in tags)
+                        {
+                            <option value="@tag">@tag</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="note" class="form-label">Note (optional)</label>
+                    <textarea id="note" class="form-control" @bind="newTransaction.Note"></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary" @onclick="NavigateBack">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Transaction newTransaction = new() { Date = DateTime.Now };
+    private bool insufficientBalance;
+    private decimal currentBalance;
+
+    // List of tags
+    private List<string> tags = new List<string> { "Food", "Rent", "Salary", "Utilities", "Transport", "Entertainment", "Healthcare", "Others" };
+
+    protected override void OnInitialized()
+    {
+        var summary = TransactionService.GetFinancialSummary();
+        currentBalance = summary.Balance;
+    }
+
+    private void AddTransaction()
+    {
+        if (string.IsNullOrWhiteSpace(newTransaction.Description) ||
+            string.IsNullOrWhiteSpace(newTransaction.Type) ||
+            string.IsNullOrWhiteSpace(newTransaction.Tag) || 
+            newTransaction.Amount <= 0)
+        {
+            return;
+        }
+
+        if (TransactionService.AddTransaction(newTransaction, currentBalance))
+        {
+            NavigateBack();
+        }
+        else
+        {
+            insufficientBalance = true;
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Nav.NavigateTo("/dashboard");
+    }
+}

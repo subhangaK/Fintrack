@@ -1,0 +1,400 @@
+﻿@page "/dashboard"
+@using Fintrack.Model
+@using Microsoft.AspNetCore.Components.Web
+@inject IJSRuntime JS
+
+<div class="dashboardpage">
+    <div class="container mt-4">
+        <div class="dashboard-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-white">Dashboard</h2>
+            <button class="btn btn-primary" @onclick="NavigateToAddTransaction">Add Transaction</button>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="dashboard-card bg-dark text-center">
+                    <h5>Total Inflows</h5>
+                    <h2 class="text-success">@financialSummary.Income.ToString("C")</h2>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="dashboard-card bg-dark text-center">
+                    <h5>Total Outflows</h5>
+                    <h2 class="text-danger">@financialSummary.Expense.ToString("C")</h2>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="dashboard-card bg-dark text-center">
+                    <h5>Total Debt</h5>
+                    <h2 class="text-warning">@financialSummary.Debt.ToString("C")</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <div class="dashboard-card bg-dark text-center">
+                    <h5>Available Balance</h5>
+                    <h2 class="text-primary">@financialSummary.Balance.ToString("C")</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="dashboard-card bg-dark">
+                    <h5>Highest Transaction</h5>
+                    @{
+                        var highestTransaction = TransactionService.GetHighestTransaction();
+                    }
+                    @if (highestTransaction != null)
+
+                    {
+                        <div class="transaction-details">
+                            <p><strong>Amount:</strong> <span class="@(highestTransaction.Type == "Income" ? "text-success" : highestTransaction.Type == "Expense" ? "text-danger" : "text-warning")">@highestTransaction.Amount.ToString("C")</span></p>
+                            <p><strong>Description:</strong> @highestTransaction.Description</p>
+                            <p><strong>Date:</strong> @highestTransaction.Date.ToString("yyyy-MM-dd")</p>
+                            <p><strong>Type:</strong> @highestTransaction.Type</p>
+                        </div>
+                    }
+
+                    else
+
+                    {
+                        <p class="text-muted">No transactions found</p>
+                    }
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="dashboard-card bg-dark">
+                    <h5>Lowest Transaction</h5>
+                    @{
+                        var lowestTransaction = TransactionService.GetLowestTransaction();
+                    }
+                    @if (lowestTransaction != null)
+
+                    {
+                        <div class="transaction-details">
+                            <p><strong>Amount:</strong> <span class="@(lowestTransaction.Type == "Income" ? "text-success" : lowestTransaction.Type == "Expense" ? "text-danger" : "text-warning")">@lowestTransaction.Amount.ToString("C")</span></p>
+                            <p><strong>Description:</strong> @lowestTransaction.Description</p>
+                            <p><strong>Date:</strong> @lowestTransaction.Date.ToString("yyyy-MM-dd")</p>
+                            <p><strong>Type:</strong> @lowestTransaction.Type</p>
+                        </div>
+                    }
+
+                    else
+
+                    {
+                        <p class="text-muted">No transactions found</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter container -->
+        <div class="d-flex justify-content-between my-4">
+            <button class="btn btn-dark" @onclick="ShowFilterModal">Open Filters</button>
+        </div>
+
+        <!-- Full-width Top Transactions Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="dashboard-card bg-dark">
+                    <h5>Top Transactions</h5>
+                    <table class="table table-striped table-dark">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var transaction in GetTopTransactions())
+
+                            {
+                                <tr>
+                                    <td>@transaction.Description</td>
+                                    <td>@transaction.Date.ToString("yyyy-MM-dd")</td>
+                                    <td class="@(transaction.Type == "Debt" ? "text-warning" : transaction.Type == "Income" ? "text-success" : "text-danger")">@transaction.Amount.ToString("C")</td>
+                                    <td>@transaction.Type</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="dashboard-card bg-dark">
+                    <h5>Transaction Type Breakdo</h5>
+                    <div class="chart-container">
+                        <canvas id="transactionTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="dashboard-card bg-dark">
+                    <h5>Income vs Expense Distribution</h5>
+                    <div class="chart-container">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="dashboard-card bg-dark">
+                    <h5>Monthly Transaction Overview</h5>
+                    <div class="chart-container">
+                        <canvas id="monthlyOverviewChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Debts Table -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card bg-dark text-white">
+                    <div class="card-header">
+                        <h5>Pending Debts</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var debt in pendingDebts)
+
+                                {
+                                    <tr>
+                                        <td>@debt.Description</td>
+                                        <td>@debt.Date.ToString("yyyy-MM-dd")</td>
+                                        <td>@debt.Amount.ToString("C")</td>
+                                        <td>
+                                            <span class="badge bg-warning">Pending</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for filters -->
+        @if (isModalVisible)
+
+        {
+            <div class="modal" tabindex="-1" style="display:block;">
+                <div class="modal-dialog">
+                    <div class="modal-content bg-dark text-white">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Filter Transactions</h5>
+                            <button type="button" class="close" @onclick="CloseModal">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="fromDate" class="form-label">From:</label>
+                                <input id="fromDate" type="date" class="form-control" @bind="fromDate" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="toDate" class="form-label">To:</label>
+                                <input id="toDate" type="date" class="form-control" @bind="toDate" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="filterType" class="form-label">Filter by Type:</label>
+                                <select id="filterType" class="form-select" @bind="selectedTypeFilter">
+                                    <option value="">All</option>
+                                    <option value="Income">Income</option>
+                                    <option value="Expense">Expense</option>
+                                    <option value="Debt">Debt</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-dark" @onclick="ApplyFilters">Apply Filters</button>
+                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private (decimal Income, decimal Expense, decimal Debt, decimal Balance) financialSummary;
+
+    private DateTime? fromDate;
+
+    private DateTime? toDate;
+
+    private List<Transaction> pendingDebts = new();
+
+    private string selectedTypeFilter = "";
+
+    private bool isModalVisible = false;
+
+    protected override void OnInitialized()
+    {
+        RefreshData();
+    }
+
+    private void RefreshData()
+    {
+        financialSummary = TransactionService.GetFinancialSummary();
+
+        pendingDebts = TransactionService.GetPendingDebts();  // This should return only "Debt" type transactions with status "Pending
+
+        StateHasChanged();
+    }
+
+    private void NavigateToAddTransaction()
+    {
+        Nav.NavigateTo("/add-transaction");
+    }
+
+    private List<Transaction> GetTopTransactions()
+    {
+        var transactions = TransactionService.GetFilteredTransactions(fromDate, toDate, selectedTypeFilter);
+        return transactions.Take(5).ToList();
+    }
+
+    private void ShowFilterModal()
+    {
+        isModalVisible = true;
+    }
+
+
+
+    private void CloseModal()
+    {
+        isModalVisible = false;
+    }
+
+    private void ApplyFilters()
+    {
+        // Apply filters logic
+        isModalVisible = false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeChartsAsync();
+        }
+    }
+
+    private async Task InitializeChartsAsync()
+    {
+        var lastSixMonths = Enumerable.Range(0, 6)
+            .Select(i => DateTime.Now.AddMonths(-i))
+            .Reverse()
+            .ToList();
+
+        var monthlyData = new
+        {
+            labels = lastSixMonths.Select(d => d.ToString("MMM yy")).ToArray(),
+            income = lastSixMonths.Select(month =>
+            {
+                var startDate = new DateTime(month.Year, month.Month, 1);
+
+                var endDate = startDate.AddMonths(1).AddDays(-1);
+
+                var transactions = TransactionService.GetFilteredTransactions(
+                    startDate,
+                    endDate,
+                    "Income"
+                );
+
+                return (double)transactions.Sum(t => t.Amount);
+
+            }).ToArray(),
+
+            expense = lastSixMonths.Select(month =>
+            {
+                var startDate = new DateTime(month.Year, month.Month, 1);
+
+                var endDate = startDate.AddMonths(1).AddDays(-1);
+
+                var transactions = TransactionService.GetFilteredTransactions(
+                    startDate,
+                    endDate,
+                    "Expense"
+                );
+
+                return (double)transactions.Sum(t => t.Amount);
+
+            }).ToArray(),
+
+            debt = lastSixMonths.Select(month =>
+
+            {
+
+                var startDate = new DateTime(month.Year, month.Month, 1);
+
+                var endDate = startDate.AddMonths(1).AddDays(-1);
+
+                var transactions = TransactionService.GetFilteredTransactions(
+                    startDate,
+                    endDate,
+                    "Debt"
+                );
+
+                return (double)transactions.Sum(t => t.Amount);
+
+            }).ToArray()
+        };
+
+        var summary = TransactionService.GetFinancialSummary();
+
+        var distributionData = new
+
+        {
+
+            labels = new[] { "Income", "Expense", "Debt" },
+
+            data = new[] { (double)summary.Income, (double)summary.Expense, (double)summary.Debt }
+
+        };
+
+        var transactions = TransactionService.GetAllTransactions();
+
+        var breakdownData = new
+
+        {
+            labels = new[] { "Income", "Expense", "Debt" },
+
+            data = new[]
+
+            {
+            transactions.Count(t => t.Type == "Income"),
+            transactions.Count(t => t.Type == "Expense"),
+            transactions.Count(t => t.Type == "Debt")
+        }
+        };
+
+        await JS.InvokeVoidAsync("initializeCharts", monthlyData, distributionData, breakdownData);
+
+    }
+}
+
